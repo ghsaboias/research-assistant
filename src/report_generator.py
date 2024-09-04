@@ -99,7 +99,7 @@ def generate_followup_questions(initial_report):
         logger.error(f"Error generating follow-up questions: {str(e)}")
         return f"Error generating follow-up questions: {str(e)}"
 
-def enhance_report(initial_report, followup_questions, additional_research_data):
+def enhance_report(initial_report, followup_questions, additional_research_data=None):
     logger.info("Enhancing report with follow-up questions and additional research")
     
     enhancement_prompt = f"""
@@ -112,7 +112,7 @@ def enhance_report(initial_report, followup_questions, additional_research_data)
     {followup_questions}
 
     Additional Research Data:
-    {format_additional_research(additional_research_data)}
+    {format_additional_research(additional_research_data) if additional_research_data else "No additional research data available."}
 
     Please incorporate answers to these questions into the relevant sections of the report, adding specific examples, data, and detailed explanations where possible. Use the additional research data to provide more in-depth answers and insights. Maintain the overall structure and formatting of the initial report, but feel free to expand sections or add new subsections as needed to accommodate the additional information. Return just the enhanced report, with no meta-comments.
     """
