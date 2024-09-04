@@ -31,17 +31,13 @@ def scrape_website(url):
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # Extract main content
         main_content = soup.find('main') or soup.find('article') or soup.find('body')
         
-        # Extract text content
         text_content = main_content.get_text(separator='\n', strip=True) if main_content else ""
         
-        # Basic text cleaning
-        text_content = re.sub(r'\s+', ' ', text_content)  # Replace multiple spaces with single space
-        text_content = re.sub(r'\n+', '\n', text_content)  # Replace multiple newlines with single newline
+        text_content = re.sub(r'\s+', ' ', text_content)
+        text_content = re.sub(r'\n+', '\n', text_content) 
         
-        # Extract title
         title = soup.title.string if soup.title else ""
         
         return {
