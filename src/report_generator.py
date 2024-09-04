@@ -18,15 +18,12 @@ def generate_initial_report(topic, research_data):
     research_summary = f"# Research Summary for: {topic}\n\n"
     for result in research_data:
         research_summary += f"## Source: {result['url']}\n\n"
-        if result['data']['error']:
-            research_summary += f"Error: {result['data']['error']}\n\n"
+        if result['error']:
+            research_summary += f"Error: {result['error']}\n\n"
         else:
-            research_summary += "### Headlines:\n"
-            for headline in result['data']['headlines']:
-                research_summary += f"- {headline}\n"
-            research_summary += "\n### Content Excerpts:\n"
-            for content in result['data']['content']:
-                research_summary += f"{content}\n\n"
+            research_summary += f"### Title: {result['title']}\n\n"
+            research_summary += "### Content Excerpt:\n"
+            research_summary += f"{result['content']}...\n\n" 
         research_summary += "---\n\n"
 
     # Generate initial report

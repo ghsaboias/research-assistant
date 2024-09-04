@@ -22,20 +22,19 @@ def research_followup_questions(questions):
 def general_purpose_researcher(topic):
     logger.info(f"Starting research on topic: {topic}")
     
-    initial_research_data = search_and_scrape(topic)
+    initial_research_data = search_and_scrape(topic, CONFIG["NUM_SEARCH_RESULTS"])
     
     initial_report = generate_initial_report(topic, initial_research_data)
     
     followup_questions = generate_followup_questions(initial_report)
     
-    # New step: Research follow-up questions
     additional_research_data = research_followup_questions(followup_questions)
     
     enhanced_report = enhance_report(initial_report, followup_questions, additional_research_data)
     
     html_report = generate_html_report(enhanced_report, f"{topic} Research Report")
     
-    # save to report dir, create dir if not exists
+    # Save to report dir, create dir if not exists
     os.makedirs(CONFIG["REPORTS_DIR"], exist_ok=True)
     report_filename = os.path.join(CONFIG["REPORTS_DIR"], f"{topic.replace(' ', '_')}_report.html")
     with open(report_filename, 'w') as f:
