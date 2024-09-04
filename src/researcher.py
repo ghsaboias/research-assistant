@@ -1,7 +1,8 @@
 import logging
-from scraper import search_and_scrape
-from report_generator import generate_initial_report, generate_followup_questions, enhance_report, generate_html_report
-from conversation_saver import save_conversation
+
+from src.scraper import search_and_scrape
+from src.report_generator import generate_initial_report, generate_followup_questions, enhance_report, generate_html_report
+from src.conversation_saver import save_conversation
 import os
 from config import CONFIG
 

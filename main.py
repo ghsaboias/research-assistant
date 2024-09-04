@@ -1,6 +1,6 @@
 import sys
 import logging
-from researcher import general_purpose_researcher
+from src.researcher import general_purpose_researcher
 from config import CONFIG
 
 # Set up logging
