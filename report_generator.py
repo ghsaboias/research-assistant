@@ -5,11 +5,11 @@ from datetime import datetime
 import os
 import re
 from bs4 import BeautifulSoup
-
+from config import CONFIG
 
 logger = logging.getLogger(__name__)
 
-interpreter.llm.model = "claude-3-haiku-20240307"
+interpreter.llm.model = CONFIG["AI_MODEL"]
 
 def generate_initial_report(topic, research_data):
     logger.info(f"Generating initial report for topic: {topic}")
@@ -75,6 +75,8 @@ def generate_followup_questions(initial_report):
     {initial_report}
 
     Focus on areas where more concrete examples, dates, places, people, information, or explanations would enhance the report's depth and specificity.
+    
+    Return only the follow-up questions, without any additional comments or meta-information.
     """
     
     try:
@@ -97,11 +99,11 @@ def generate_followup_questions(initial_report):
         logger.error(f"Error generating follow-up questions: {str(e)}")
         return f"Error generating follow-up questions: {str(e)}"
 
-def enhance_report(initial_report, followup_questions):
-    logger.info("Enhancing report with follow-up questions")
+def enhance_report(initial_report, followup_questions, additional_research_data):
+    logger.info("Enhancing report with follow-up questions and additional research")
     
     enhancement_prompt = f"""
-    Enhance the following initial report by addressing these follow-up questions:
+    Enhance the following initial report by addressing these follow-up questions and incorporating the additional research data:
 
     Initial Report:
     {initial_report}
@@ -109,7 +111,10 @@ def enhance_report(initial_report, followup_questions):
     Follow-up Questions:
     {followup_questions}
 
-    Please incorporate answers to these questions into the relevant sections of the report, adding specific examples, data, and detailed explanations where possible. Maintain the overall structure and formatting of the initial report, but feel free to expand sections or add new subsections as needed to accommodate the additional information. Return just the enhanced report, with no meta-comments.
+    Additional Research Data:
+    {format_additional_research(additional_research_data)}
+
+    Please incorporate answers to these questions into the relevant sections of the report, adding specific examples, data, and detailed explanations where possible. Use the additional research data to provide more in-depth answers and insights. Maintain the overall structure and formatting of the initial report, but feel free to expand sections or add new subsections as needed to accommodate the additional information. Return just the enhanced report, with no meta-comments.
     """
     
     try:
@@ -128,6 +133,19 @@ def enhance_report(initial_report, followup_questions):
     except Exception as e:
         logger.error(f"Error enhancing report: {str(e)}")
         return f"Error enhancing report: {str(e)}"
+
+def format_additional_research(additional_research_data):
+    """Format the additional research data for inclusion in the prompt."""
+    formatted_data = ""
+    for item in additional_research_data:
+        formatted_data += f"Question: {item['question']}\n"
+        for result in item['data']:
+            formatted_data += f"Source: {result['url']}\n"
+            formatted_data += "Content Excerpts:\n"
+            for content in result['data']['content'][:2]:  # Limit to first 2 content excerpts for brevity
+                formatted_data += f"- {content}\n"
+        formatted_data += "\n"
+    return formatted_data
 
 def generate_html_report(markdown_content, title):
     logger.info(f"Generating HTML report: {title}")
@@ -282,7 +300,7 @@ def wrap_sections(soup):
 
 if __name__ == "__main__":
     # For testing purposes
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=CONFIG["LOG_LEVEL"], format=CONFIG["LOG_FORMAT"])
     test_topic = "Artificial Intelligence in Healthcare"
     test_research_data = [
         {

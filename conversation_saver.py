@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 import os
 import re
+from config import CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -26,18 +27,19 @@ def save_conversation(topic, conversation):
         
         # Ensure the filename is unique
         counter = 1
-        while os.path.exists(filename):
+        while os.path.exists(os.path.join(CONFIG["DEBUG_DIR"], filename)):
             name_parts = filename.rsplit('.', 1)
             filename = f"{name_parts[0]}_{counter}.{name_parts[1]}"
             counter += 1
         
         # Save the conversation
-        os.makedirs("debug", exist_ok=True)
-        with open(f"debug/{filename}", 'w', encoding='utf-8') as f:
+        os.makedirs(CONFIG["DEBUG_DIR"], exist_ok=True)
+        full_path = os.path.join(CONFIG["DEBUG_DIR"], filename)
+        with open(full_path, 'w', encoding='utf-8') as f:
             json.dump(conversation, f, ensure_ascii=False, indent=2)
         
-        logger.info(f"Conversation saved to {filename}")
-        return filename
+        logger.info(f"Conversation saved to {full_path}")
+        return full_path
     except Exception as e:
         logger.error(f"Error saving conversation: {str(e)}")
         return None
@@ -57,7 +59,7 @@ def load_conversation(filename):
 
 if __name__ == "__main__":
     # For testing purposes
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(level=CONFIG["LOG_LEVEL"], format=CONFIG["LOG_FORMAT"])
     
     test_topic = "Artificial Intelligence in Healthcare"
     test_conversation = [

@@ -1,9 +1,10 @@
 import sys
 import logging
 from researcher import general_purpose_researcher
+from config import CONFIG
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=CONFIG["LOG_LEVEL"], format=CONFIG["LOG_FORMAT"])
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":

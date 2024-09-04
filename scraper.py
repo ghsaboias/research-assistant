@@ -12,6 +12,7 @@ import concurrent.futures
 from requests.exceptions import RequestException
 from selenium.common.exceptions import TimeoutException, WebDriverException
 import os
+from config import CONFIG
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -22,19 +23,15 @@ def fetch_data_with_selenium(url):
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     
-    service = Service()  # Assumes chromedriver is in PATH
+    service = Service()
     
     try:
         with webdriver.Chrome(service=service, options=chrome_options) as driver:
             driver.get(url)
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+            WebDriverWait(driver, CONFIG["SELENIUM_TIMEOUT"]).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
             return driver.page_source
-    except TimeoutException:
-        logger.error(f"Timeout while fetching data from {url}")
-    except WebDriverException as e:
-        logger.error(f"WebDriver error while fetching data from {url}: {str(e)}")
     except Exception as e:
-        logger.error(f"Unexpected error while fetching data from {url}: {str(e)}")
+        logger.error(f"Error fetching data from {url}: {str(e)}")
     
     return None
 
@@ -89,19 +86,19 @@ def clear_results_file():
         f.write("")
     logger.info("Cleared results.txt file")
 
-def search_and_scrape(topic, num_results=3):
+def search_and_scrape(topic, delete_results=True):
     logger.info(f"Starting search and scrape for topic: {topic}")
     
-    # Clear the results file before starting
-    clear_results_file()
+    if delete_results:
+        clear_results_file()
     
-    urls = get_search_results(topic, num_results)
+    urls = get_search_results(topic, CONFIG["NUM_SEARCH_RESULTS"])
     
     if not urls:
         logger.warning(f"No search results found for topic: {topic}")
         return []
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_results) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=CONFIG["NUM_SEARCH_RESULTS"]) as executor:
         future_to_url = {executor.submit(scrape_website, url): url for url in urls}
         results = []
         for future in concurrent.futures.as_completed(future_to_url):
@@ -109,13 +106,13 @@ def search_and_scrape(topic, num_results=3):
             try:
                 data = future.result()
                 results.append({"url": url, "data": data})
-
-                # Append new results to results.txt
+                
                 with open('debug/results.txt', 'a') as f:
                     f.write(f"URL: {url}\n")
                     f.write(f"Headlines: {data['headlines']}\n")
                     f.write(f"Content snippets: {data['content']}\n")
                     f.write("---\n")
+                
                 logger.info(f"Successfully scraped data from {url}")
             except Exception as e:
                 logger.error(f"Error processing {url}: {str(e)}")
