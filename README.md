@@ -1,5 +1,3 @@
-Here's a README.md for the research assistant project:
-
 # Research Assistant Application
 
 The Research Assistant Application is a comprehensive tool that helps users conduct thorough research on various topics. It integrates web scraping, report generation, and conversation history management to provide a seamless research experience.
