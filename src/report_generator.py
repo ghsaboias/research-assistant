@@ -74,6 +74,8 @@ def generate_followup_questions(initial_report):
     Focus on areas where more concrete examples, dates, places, people, information, or explanations would enhance the report's depth and specificity.
     
     Return only the follow-up questions, without any additional comments or meta-information.
+    Return as a list of questions, each on a new line, preceded by a number.
+    Don't add any extra information, just the questions.
     """
     
     try:
