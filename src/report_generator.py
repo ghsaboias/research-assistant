@@ -1,15 +1,37 @@
 import logging
-from interpreter import interpreter
 import markdown
 from datetime import datetime
 import os
 import re
 from bs4 import BeautifulSoup
 from config import CONFIG
+from anthropic import Anthropic
 
 logger = logging.getLogger(__name__)
 
-interpreter.llm.model = CONFIG["AI_MODEL"]
+class AIModelInterface:
+    def __init__(self):
+        self.anthropic = Anthropic(api_key=CONFIG["ANTHROPIC_API_KEY"])
+        self.model = "claude-3-haiku-20240307"
+
+    def generate_response(self, prompt, max_tokens=2000):
+        try:
+            response = self.anthropic.messages.create(
+                model=self.model,
+                max_tokens=max_tokens,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
+            )
+            return response.content[0].text
+        except Exception as e:
+            logger.error(f"Error generating response: {str(e)}")
+            return f"Error generating response: {str(e)}"
+
+ai_model = AIModelInterface()
 
 def generate_initial_report(topic, research_data):
     logger.info(f"Generating initial report for topic: {topic}")
@@ -46,22 +68,9 @@ def generate_initial_report(topic, research_data):
     Ensure to include specific examples, names, dates, and places where relevant.
     """
     
-    try:
-        initial_response = interpreter.chat(initial_report_prompt)
-        
-        # Extract content from the initial response
-        if isinstance(initial_response, list):
-            initial_content = "\n".join([item.get('content', '') for item in initial_response if isinstance(item, dict)])
-        elif isinstance(initial_response, dict):
-            initial_content = initial_response.get('content', '')
-        else:
-            initial_content = str(initial_response)
-        
-        logger.info("Initial report generation completed successfully")
-        return initial_content
-    except Exception as e:
-        logger.error(f"Error generating initial report: {str(e)}")
-        return f"Error generating initial report: {str(e)}"
+    initial_content = ai_model.generate_response(initial_report_prompt, max_tokens=2000)
+    logger.info("Initial report generation completed successfully")
+    return initial_content
 
 def generate_followup_questions(initial_report):
     logger.info("Generating follow-up questions")
@@ -78,25 +87,13 @@ def generate_followup_questions(initial_report):
     Don't add any extra information, just the questions.
     """
     
-    try:
-        followup_questions = interpreter.chat(followup_prompt)
-        
-        # Extract follow-up questions
-        if isinstance(followup_questions, list):
-            questions = "\n".join([item.get('content', '') for item in followup_questions if isinstance(item, dict)])
-        elif isinstance(followup_questions, dict):
-            questions = followup_questions.get('content', '')
-        else:
-            questions = str(followup_questions)
-        
-        os.makedirs("debug", exist_ok=True)
-        with open('debug/questions.txt', 'w') as f:
-            f.write(questions)
-        logger.info("Follow-up questions generated successfully")
-        return questions
-    except Exception as e:
-        logger.error(f"Error generating follow-up questions: {str(e)}")
-        return f"Error generating follow-up questions: {str(e)}"
+    questions = ai_model.generate_response(followup_prompt, max_tokens=1000)
+    
+    os.makedirs("debug", exist_ok=True)
+    with open('debug/questions.txt', 'w') as f:
+        f.write(questions)
+    logger.info("Follow-up questions generated successfully")
+    return questions
 
 def enhance_report(initial_report, followup_questions, additional_research_data=None):
     logger.info("Enhancing report with follow-up questions and additional research")
@@ -116,22 +113,9 @@ def enhance_report(initial_report, followup_questions, additional_research_data=
     Please incorporate answers to these questions into the relevant sections of the report, adding specific examples, data, and detailed explanations where possible. Use the additional research data to provide more in-depth answers and insights. Maintain the overall structure and formatting of the initial report, but feel free to expand sections or add new subsections as needed to accommodate the additional information. Return just the enhanced report, with no meta-comments.
     """
     
-    try:
-        enhanced_response = interpreter.chat(enhancement_prompt)
-        
-        # Extract content from the enhanced response
-        if isinstance(enhanced_response, list):
-            enhanced_content = "\n".join([item.get('content', '') for item in enhanced_response if isinstance(item, dict)])
-        elif isinstance(enhanced_response, dict):
-            enhanced_content = enhanced_response.get('content', '')
-        else:
-            enhanced_content = str(enhanced_response)
-        
-        logger.info("Report enhancement completed successfully")
-        return enhanced_content
-    except Exception as e:
-        logger.error(f"Error enhancing report: {str(e)}")
-        return f"Error enhancing report: {str(e)}"
+    enhanced_content = ai_model.generate_response(enhancement_prompt, max_tokens=3000)
+    logger.info("Report enhancement completed successfully")
+    return enhanced_content
 
 def format_additional_research(additional_research_data):
     """Format the additional research data for inclusion in the prompt."""

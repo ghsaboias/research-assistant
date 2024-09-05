@@ -9,3 +9,5 @@ reports/*
 !reports/.gitkeep
 
 data
+
+config.py

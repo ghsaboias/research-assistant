@@ -1,4 +1,7 @@
 CONFIG = {
+    # Anthropic api key
+    "ANTHROPIC_API_KEY": "your_anthropic_api_key",
+
     # Scraper settings
     "NUM_SEARCH_RESULTS": 3,
     "SELENIUM_TIMEOUT": 10,  # in seconds
