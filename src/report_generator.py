@@ -138,9 +138,9 @@ def format_additional_research(additional_research_data):
         formatted_data += f"Question: {item['question']}\n"
         for result in item['data']:
             formatted_data += f"Source: {result['url']}\n"
-            formatted_data += "Content Excerpts:\n"
-            for content in result['data']['content'][:2]:  # Limit to first 2 content excerpts for brevity
-                formatted_data += f"- {content}\n"
+            if not result['error']:
+                formatted_data += "Content Excerpts:\n"
+                formatted_data += f"- {result['content']}\n"
         formatted_data += "\n"
     return formatted_data
 
