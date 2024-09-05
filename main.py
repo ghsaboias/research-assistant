@@ -1,6 +1,6 @@
 import sys
 import logging
-from src.researcher import general_purpose_researcher
+from src.researcher import Researcher
 from config import CONFIG
 
 # Set up logging
@@ -13,7 +13,10 @@ if __name__ == "__main__":
         sys.exit(1)
     
     topic = " ".join(sys.argv[1:])
-    report_filename, conversation_filename = general_purpose_researcher(topic)
+    
+    researcher = Researcher(num_results=CONFIG["NUM_SEARCH_RESULTS"])
+    
+    report_filename, conversation_filename = researcher.general_purpose_research(topic)
     
     logger.info(f"Research completed. Report saved as {report_filename}")
     logger.info(f"Conversation saved as {conversation_filename}")
