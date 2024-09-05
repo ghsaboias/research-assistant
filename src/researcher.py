@@ -3,7 +3,6 @@ import os
 from config import CONFIG
 from src.scraper import Scraper
 from src.report_generator import ReportGenerator, AIModelInterface
-from src.conversation_saver import ConversationSaver
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +11,6 @@ class Researcher:
         self.scraper = Scraper(num_results)
         self.ai_model = AIModelInterface()
         self.report_generator = ReportGenerator(self.ai_model)
-        self.conversation_saver = ConversationSaver()
 
     def research_followup_questions(self, questions):
         """Perform additional research based on follow-up questions."""
@@ -49,22 +47,9 @@ class Researcher:
         with open(report_filename, 'w') as f:
             f.write(html_report)
         logger.info(f"HTML report saved as {report_filename}")
-
-        # Save the conversation
-        conversation = [
-            {"role": "user", "content": f"Research topic: {topic}"},
-            {"role": "assistant", "content": initial_report},
-            {"role": "user", "content": "Generate follow-up questions"},
-            {"role": "assistant", "content": followup_questions},
-            {"role": "user", "content": "Perform additional research on follow-up questions"},
-            {"role": "assistant", "content": "Additional research completed. Enhancing the report."},
-            {"role": "user", "content": "Enhance the report"},
-            {"role": "assistant", "content": enhanced_report}
-        ]
-        conversation_filename = self.conversation_saver.save_conversation(topic, conversation)
         
         logger.info(f"Research on '{topic}' completed. HTML report and conversation saved.")
-        return report_filename, conversation_filename
+        return report_filename
 
 if __name__ == "__main__":
     logging.basicConfig(level=CONFIG["LOG_LEVEL"], format=CONFIG["LOG_FORMAT"])

@@ -6,6 +6,7 @@ import re
 from bs4 import BeautifulSoup
 from config import CONFIG
 from anthropic import Anthropic
+from src.conversation_logger import ConversationLogger
 
 logger = logging.getLogger(__name__)
 
@@ -13,9 +14,12 @@ class AIModelInterface:
     def __init__(self):
         self.anthropic = Anthropic(api_key=CONFIG["ANTHROPIC_API_KEY"])
         self.model = "claude-3-haiku-20240307"
+        self.conversation_logger = ConversationLogger("debug/conversation_log.json")
 
     def generate_response(self, prompt, max_tokens=2000):
         try:
+            self.conversation_logger.log_interaction("user", prompt)
+            
             response = self.anthropic.messages.create(
                 model=self.model,
                 max_tokens=max_tokens,
@@ -26,10 +30,16 @@ class AIModelInterface:
                     }
                 ]
             )
-            return response.content[0].text
+            
+            ai_response = response.content[0].text
+            self.conversation_logger.log_interaction("assistant", ai_response)
+            
+            return ai_response
         except Exception as e:
-            logger.error(f"Error generating response: {str(e)}")
-            return f"Error generating response: {str(e)}"
+            error_message = f"Error generating response: {str(e)}"
+            logger.error(error_message)
+            self.conversation_logger.log_interaction("system", error_message)
+            return error_message
 
 class ReportGenerator:
     def __init__(self, ai_model):
