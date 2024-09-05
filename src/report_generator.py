@@ -55,11 +55,47 @@ class ReportGenerator:
         logger.info("Initial report generation completed successfully")
         return initial_content
 
+    def _analyze_information_gaps(self, initial_report):
+        logger.info("Analyzing information gaps using LLM")
+        
+        analysis_prompt = f"""
+        Analyze the following report for information gaps, missing details, or areas that need more specific examples or evidence:
+
+        {initial_report}
+
+        Please identify at least 3 and up to 5 specific areas where the report could be improved. For each area, provide:
+        1. The section or topic that needs improvement
+        2. What kind of information is missing (e.g., specific examples, dates, data, expert opinions, comparisons)
+        3. Why this information would be valuable to include
+
+        Format your response as a list, with each item clearly stating the section and the type of information needed.
+        """
+
+        analysis_response = self.ai_model.generate_response(analysis_prompt, max_tokens=1000)
+        
+        # Parse the response into a list of gaps
+        gaps = [line.strip() for line in analysis_response.split('\n') if line.strip()]
+        
+        logger.info(f"Identified {len(gaps)} information gaps")
+        return gaps
+
     def generate_followup_questions(self, initial_report):
         logger.info("Generating follow-up questions")
         
-        followup_prompt = self._create_followup_prompt(initial_report)
-        questions = self.ai_model.generate_response(followup_prompt, max_tokens=1000)
+        gaps = self._analyze_information_gaps(initial_report)
+        
+        questions_prompt = f"""
+        Based on the following analysis of information gaps in a report, generate 3 specific follow-up questions:
+
+        Information gaps:
+        {gaps}
+
+        Generate questions that will help fill these gaps with more specific information, examples, or details. Each question should be clear, focused, and designed to elicit detailed responses.
+
+        Return only the questions, one per line, numbered 1-3.
+        """
+
+        questions = self.ai_model.generate_response(questions_prompt, max_tokens=1000)
         
         os.makedirs("debug", exist_ok=True)
         with open('debug/questions.txt', 'w') as f:
@@ -108,18 +144,23 @@ class ReportGenerator:
 
         {research_summary}
 
-        The report should include:
-        1. An introduction to the topic
-        2. Key findings from the research
-        3. Analysis of the main points discovered
-        4. Comparison of information from different sources (if applicable)
-        5. Potential implications or applications of the findings
-        6. Conclusion
-        7. Areas for further research
-        
+        Please structure the report in a way that best suits the topic and available information. The report should:
+
+        1. Begin with an introduction to the topic.
+        2. Include all relevant key findings and main points discovered in the research.
+        3. Provide analysis and, where applicable, compare information from different sources.
+        4. Discuss potential implications or applications of the findings.
+        5. End with a conclusion and suggest areas for further research.
+
+        Determine appropriate section titles and organization based on the content and nature of the topic. 
+        You are not limited to a fixed structure - create sections and subsections as needed to best present the information.
+
         Format the report using Markdown syntax. Use appropriate headers, lists, and emphasis.
-        Include a table of contents at the beginning.
+        Include a table of contents at the beginning that reflects your chosen structure.
         Ensure to include specific examples, names, dates, and places where relevant.
+
+        Be creative and analytical in your approach, focusing on producing a well-organized, 
+        informative, and engaging report that best represents the research findings on {topic}.
         """
 
     def _create_followup_prompt(self, initial_report):
@@ -268,13 +309,6 @@ class ReportGenerator:
                 <h1>{title}</h1>
                 <p class="timestamp">Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
             </header>
-            <nav>
-                <ul>
-                    <li><a href="#introduction">Introduction</a></li>
-                    <li><a href="#key-findings">Key Findings</a></li>
-                    <li><a href="#conclusion">Conclusion</a></li>
-                </ul>
-            </nav>
             <main>
                 {content}
             </main>

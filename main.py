@@ -16,7 +16,6 @@ if __name__ == "__main__":
     
     researcher = Researcher(num_results=CONFIG["NUM_SEARCH_RESULTS"])
     
-    report_filename, conversation_filename = researcher.general_purpose_research(topic)
+    report_filename = researcher.general_purpose_research(topic)
     
     logger.info(f"Research completed. Report saved as {report_filename}")
-    logger.info(f"Conversation saved as {conversation_filename}")
