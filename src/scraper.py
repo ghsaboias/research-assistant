@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import quote_plus
 import re
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,12 @@ def scrape_website(url):
         
         title = soup.title.string if soup.title else ""
         
+        with open('debug/results.txt', "a") as f:
+            f.write(f"URL: {url}\n")
+            f.write(f"Title: {title}\n")
+            f.write(f"Content: {text_content[:500]}...\n")
+            f.write("---\n\n")
+        
         return {
             "url": url,
             "title": title,
@@ -60,6 +67,7 @@ def search_and_scrape(topic, num_results=3):
         return []
 
     results = []
+    
     for url in urls:
         data = scrape_website(url)
         results.append(data)

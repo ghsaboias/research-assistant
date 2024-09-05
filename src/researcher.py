@@ -15,12 +15,15 @@ def research_followup_questions(questions):
     for question in questions.split('\n'):
         if question.strip():  # Ensure the question is not empty
             logger.info(f"Researching question: {question}")
-            question_data = search_and_scrape(question, False)
+            question_data = search_and_scrape(question, CONFIG["NUM_SEARCH_RESULTS"])
             additional_data.append({"question": question, "data": question_data})
     return additional_data
 
 def general_purpose_researcher(topic):
     logger.info(f"Starting research on topic: {topic}")
+    
+    with open('debug/results.txt', "w") as f:
+        f.write("")
     
     initial_research_data = search_and_scrape(topic, CONFIG["NUM_SEARCH_RESULTS"])
     
